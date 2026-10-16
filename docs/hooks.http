@@ -1,0 +1,18 @@
+### GET Health of the server
+GET {{baseUrl}}/health
+
+> {%
+    client.test("Server is healthy", function () {
+        client.assert(response.status === 200, "Response status is not 200");
+    });
+%}
+
+### GET Event
+GET {{baseUrl}}/events/1
+
+> {%
+    client.test("Response is successful", function () {
+        client.assert(response.status === 200, "Response status is not 200");
+    });
+%}
+
