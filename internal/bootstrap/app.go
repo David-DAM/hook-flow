@@ -13,6 +13,7 @@ import (
 
 type App struct {
 	HookHandler *infrastructure.HookHandler
+	Worker      *infrastructure.HookWorker
 }
 
 func Start() error {
@@ -22,6 +23,8 @@ func Start() error {
 	logger := NewLogger()
 
 	app := InitApp(logger)
+
+	go app.Worker.Start(ctx)
 
 	server := NewServer(app)
 
