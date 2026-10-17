@@ -8,11 +8,44 @@ GET {{baseUrl}}/health
 %}
 
 ### GET Event
-GET {{baseUrl}}/events/1
+@id = 01a14a4d-b724-7485-bd0e-eba488167b14
+GET {{baseUrl}}/events/{{id}}
 
 > {%
     client.test("Response is successful", function () {
         client.assert(response.status === 200, "Response status is not 200");
+    });
+%}
+
+### GET Events
+GET {{baseUrl}}/events
+
+> {%
+    client.test("Response is successful", function () {
+        client.assert(response.status === 200, "Response status is not 200");
+        client.assert(response.body != null, "Response is null")
+    });
+%}
+
+### POST Event
+POST {{baseUrl}}/events
+Content-Type: application/json
+
+{
+  "type": "order.created",
+  "destination_id": "dest_123",
+  "data": {
+    "order_id": "order_123",
+    "amount": "49.90",
+    "currency": "EUR"
+  }
+}
+
+
+> {%
+    client.test("Response is successful", function () {
+        client.assert(response.status === 200, "Response status is not 200");
+        client.assert(response.body != null, "Response is null")
     });
 %}
 

@@ -3,6 +3,7 @@ package application
 import (
 	"hook-flow/internal/domain"
 	"log/slog"
+	"uuid"
 )
 
 type HookService struct {
@@ -36,4 +37,24 @@ func (s *HookService) Create(event *domain.Event) (EventCreateResponse, error) {
 		EventId: id.String(),
 		Status:  "accepted",
 	}, nil
+}
+
+func (s *HookService) Get(id uuid.UUID) (*domain.Event, error) {
+	event, err := s.repo.Find(id)
+	if err != nil {
+		s.log.Warn("failed to get event", "id", id, "error", err)
+		return nil, err
+	}
+
+	return event, nil
+}
+
+func (s *HookService) GetAll() ([]*domain.Event, error) {
+	events, err := s.repo.FindAll()
+	if err != nil {
+		s.log.Error("failed to get events", "error", err)
+		return nil, err
+	}
+
+	return events, nil
 }

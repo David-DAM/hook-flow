@@ -6,6 +6,7 @@ import (
 	"hook-flow/internal/domain"
 	"log/slog"
 	"net/http"
+	"uuid"
 )
 
 type HookHandler struct {
@@ -23,6 +24,7 @@ func NewHookHandler(log *slog.Logger, service *application.HookService) *HookHan
 func (h *HookHandler) RegisterRoutes(mux *http.ServeMux) {
 	mux.Handle("POST /events", h.Create())
 	mux.Handle("GET /events/{id}", h.GetEvent())
+	mux.Handle("GET /events", h.GetAllEvents())
 	mux.Handle("GET /health", h.Health())
 }
 
@@ -53,6 +55,7 @@ func (h *HookHandler) Create() http.HandlerFunc {
 		err = json.NewEncoder(w).Encode(response)
 		if err != nil {
 			h.log.Error("Failed to encode response", "error", err)
+			http.Error(w, "failed to encode response", http.StatusInternalServerError)
 			return
 		}
 	}
@@ -62,8 +65,55 @@ func (h *HookHandler) GetEvent() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		id := r.PathValue("id")
 		h.log.Info("GetEvent called", "id", id)
-		w.WriteHeader(http.StatusAccepted)
+
+		parse, err := uuid.Parse(id)
+		if err != nil {
+			h.log.Error("Failed to parse event id", "error", err)
+			http.Error(w, "invalid event id", http.StatusBadRequest)
+			return
+		}
+
+		event, err := h.service.Get(parse)
+		if err != nil {
+			h.log.Error("Failed to get event", "error", err)
+			http.Error(w, "failed to get event", http.StatusInternalServerError)
+			return
+		}
+
+		w.Header().Set("Content-Type", "application/json")
+		w.WriteHeader(http.StatusOK)
+
+		err = json.NewEncoder(w).Encode(event)
+		if err != nil {
+			h.log.Error("Failed to encode response", "error", err)
+			http.Error(w, "failed to encode response", http.StatusInternalServerError)
+			return
+		}
 	}
+}
+
+func (h *HookHandler) GetAllEvents() http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		h.log.Info("GetAllEvents called")
+
+		events, err := h.service.GetAll()
+		if err != nil {
+			h.log.Error("Failed to get all events", "error", err)
+			http.Error(w, "failed to get all events", http.StatusInternalServerError)
+			return
+		}
+
+		w.Header().Set("Content-Type", "application/json")
+		w.WriteHeader(http.StatusOK)
+
+		err = json.NewEncoder(w).Encode(events)
+		if err != nil {
+			h.log.Error("Failed to encode response", "error", err)
+			http.Error(w, "failed to encode response", http.StatusInternalServerError)
+			return
+		}
+	}
+
 }
 
 func (h *HookHandler) Health() http.HandlerFunc {

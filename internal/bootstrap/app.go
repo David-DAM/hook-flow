@@ -16,11 +16,34 @@ type App struct {
 	Worker      *infrastructure.HookWorker
 }
 
+const serviceName = "webhook-api"
+
 func Start() error {
 	ctx, stop := signal.NotifyContext(context.Background(), os.Interrupt, syscall.SIGTERM)
 	defer stop()
 
-	logger := NewLogger()
+	telemetry, err := Init(ctx, serviceName)
+	if err != nil {
+		return err
+	}
+
+	logger := telemetry.Log
+
+	//meter := otel.Meter(serviceName)
+	//processed, err := meter.Int64Counter("webhook.processed")
+	//if err != nil {
+	//	logger.Error("create metric", "error", err)
+	//	return err
+	//}
+	//
+	//tracer := otel.Tracer(serviceName)
+	//
+	//ctx, span := tracer.Start(r.Context(), "webhook.process")
+	//defer span.End()
+	//
+	//span.SetAttributes(
+	//	attribute.String("webhook.source", "http"),
+	//)
 
 	app := InitApp(logger)
 
@@ -43,6 +66,12 @@ func Start() error {
 
 	if err := server.Shutdown(shutdownCtx); err != nil {
 		logger.Error("server shutdown error", err)
+		return err
+	}
+
+	if err := telemetry.Shutdown(ctx); err != nil {
+		logger.Error("telemetry shutdown error", err)
+		return err
 	}
 
 	logger.Info("app stopped cleanly")

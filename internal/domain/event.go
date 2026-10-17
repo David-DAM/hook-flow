@@ -10,4 +10,6 @@ type Event struct {
 
 type EventRepository interface {
 	Save(event *Event) (uuid.UUID, error)
+	Find(id uuid.UUID) (*Event, error)
+	FindAll() ([]*Event, error)
 }
