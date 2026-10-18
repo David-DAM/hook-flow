@@ -27,7 +27,7 @@ type Telemetry struct {
 	Log    *slog.Logger
 }
 
-func Init(ctx context.Context, serviceName string) (*Telemetry, error) {
+func InitTelemetry(ctx context.Context, serviceName string) (*Telemetry, error) {
 	res := resource.NewSchemaless(
 		attribute.String("service.name", serviceName),
 		attribute.String("service.version", "1.0.0"),

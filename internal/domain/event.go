@@ -1,6 +1,9 @@
 package domain
 
-import "uuid"
+import (
+	"context"
+	"uuid"
+)
 
 type Event struct {
 	Type          string            `json:"type"`
@@ -9,7 +12,7 @@ type Event struct {
 }
 
 type EventRepository interface {
-	Save(event *Event) (uuid.UUID, error)
-	Find(id uuid.UUID) (*Event, error)
-	FindAll() ([]*Event, error)
+	Save(ctx context.Context, event *Event) (uuid.UUID, error)
+	Find(ctx context.Context, id uuid.UUID) (*Event, error)
+	FindAll(ctx context.Context) ([]*Event, error)
 }

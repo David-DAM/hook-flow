@@ -3,6 +3,7 @@ module hook-flow
 go 1.27.2
 
 require (
+	github.com/joho/godotenv v1.5.1
 	go.opentelemetry.io/contrib/bridges/otelslog v0.21.0
 	go.opentelemetry.io/contrib/instrumentation/net/http/otelhttp v0.72.0
 	go.opentelemetry.io/otel v1.47.0

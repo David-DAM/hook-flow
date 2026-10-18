@@ -8,7 +8,7 @@ GET {{baseUrl}}/health
 %}
 
 ### GET Event
-@id = 01a14a4d-b724-7485-bd0e-eba488167b14
+@id = 01a14e49-58a6-72ec-b0e6-b3cd883d0ccb
 GET {{baseUrl}}/events/{{id}}
 
 > {%

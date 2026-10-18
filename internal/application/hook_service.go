@@ -1,6 +1,7 @@
 package application
 
 import (
+	"context"
 	"hook-flow/internal/domain"
 	"log/slog"
 	"uuid"
@@ -25,9 +26,10 @@ func NewHookService(log *slog.Logger, repo domain.EventRepository, channel chan 
 	}
 }
 
-func (s *HookService) Create(event *domain.Event) (EventCreateResponse, error) {
-	id, err := s.repo.Save(event)
+func (s *HookService) Create(ctx context.Context, event *domain.Event) (EventCreateResponse, error) {
+	id, err := s.repo.Save(ctx, event)
 	if err != nil {
+		s.log.ErrorContext(ctx, "failed to save event", "error", err)
 		return EventCreateResponse{}, err
 	}
 
@@ -39,20 +41,20 @@ func (s *HookService) Create(event *domain.Event) (EventCreateResponse, error) {
 	}, nil
 }
 
-func (s *HookService) Get(id uuid.UUID) (*domain.Event, error) {
-	event, err := s.repo.Find(id)
+func (s *HookService) Get(ctx context.Context, id uuid.UUID) (*domain.Event, error) {
+	event, err := s.repo.Find(ctx, id)
 	if err != nil {
-		s.log.Warn("failed to get event", "id", id, "error", err)
+		s.log.WarnContext(ctx, "failed to get event", "id", id, "error", err)
 		return nil, err
 	}
 
 	return event, nil
 }
 
-func (s *HookService) GetAll() ([]*domain.Event, error) {
-	events, err := s.repo.FindAll()
+func (s *HookService) GetAll(ctx context.Context) ([]*domain.Event, error) {
+	events, err := s.repo.FindAll(ctx)
 	if err != nil {
-		s.log.Error("failed to get events", "error", err)
+		s.log.ErrorContext(ctx, "failed to get events", "error", err)
 		return nil, err
 	}
 

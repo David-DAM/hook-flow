@@ -19,13 +19,13 @@ func NewHookWorker(log *slog.Logger, channel chan domain.Event) *HookWorker {
 }
 
 func (w *HookWorker) Start(ctx context.Context) {
-	w.log.Info("Starting hook worker")
+	w.log.InfoContext(ctx, "Starting hook worker")
 	for {
 		select {
 		case <-ctx.Done():
 			return
 		case event := <-w.channel:
-			w.log.Info("Received event", "event", event)
+			w.log.InfoContext(ctx, "Received event", "event", event)
 		}
 	}
 }

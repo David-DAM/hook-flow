@@ -37,14 +37,14 @@ func (h *HookHandler) Create() http.HandlerFunc {
 
 		err := decoder.Decode(&event)
 		if err != nil {
-			h.log.Error("Failed to decode event", "error", err)
+			h.log.ErrorContext(r.Context(), "Failed to decode event", "error", err)
 			http.Error(w, "invalid request body", http.StatusBadRequest)
 			return
 		}
 
-		response, err := h.service.Create(&event)
+		response, err := h.service.Create(r.Context(), &event)
 		if err != nil {
-			h.log.Error("Failed to create event", "error", err)
+			h.log.ErrorContext(r.Context(), "Failed to create event", "error", err)
 			http.Error(w, "failed to create event", http.StatusInternalServerError)
 			return
 		}
@@ -54,7 +54,7 @@ func (h *HookHandler) Create() http.HandlerFunc {
 
 		err = json.NewEncoder(w).Encode(response)
 		if err != nil {
-			h.log.Error("Failed to encode response", "error", err)
+			h.log.ErrorContext(r.Context(), "Failed to encode response", "error", err)
 			http.Error(w, "failed to encode response", http.StatusInternalServerError)
 			return
 		}
@@ -64,18 +64,18 @@ func (h *HookHandler) Create() http.HandlerFunc {
 func (h *HookHandler) GetEvent() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		id := r.PathValue("id")
-		h.log.Info("GetEvent called", "id", id)
+		h.log.InfoContext(r.Context(), "GetEvent called", "id", id)
 
 		parse, err := uuid.Parse(id)
 		if err != nil {
-			h.log.Error("Failed to parse event id", "error", err)
+			h.log.ErrorContext(r.Context(), "Failed to parse event id", "error", err)
 			http.Error(w, "invalid event id", http.StatusBadRequest)
 			return
 		}
 
-		event, err := h.service.Get(parse)
+		event, err := h.service.Get(r.Context(), parse)
 		if err != nil {
-			h.log.Error("Failed to get event", "error", err)
+			h.log.ErrorContext(r.Context(), "Failed to get event", "error", err)
 			http.Error(w, "failed to get event", http.StatusInternalServerError)
 			return
 		}
@@ -85,7 +85,7 @@ func (h *HookHandler) GetEvent() http.HandlerFunc {
 
 		err = json.NewEncoder(w).Encode(event)
 		if err != nil {
-			h.log.Error("Failed to encode response", "error", err)
+			h.log.ErrorContext(r.Context(), "Failed to encode response", "error", err)
 			http.Error(w, "failed to encode response", http.StatusInternalServerError)
 			return
 		}
@@ -94,11 +94,11 @@ func (h *HookHandler) GetEvent() http.HandlerFunc {
 
 func (h *HookHandler) GetAllEvents() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		h.log.Info("GetAllEvents called")
+		h.log.InfoContext(r.Context(), "GetAllEvents called")
 
-		events, err := h.service.GetAll()
+		events, err := h.service.GetAll(r.Context())
 		if err != nil {
-			h.log.Error("Failed to get all events", "error", err)
+			h.log.ErrorContext(r.Context(), "Failed to get all events", "error", err)
 			http.Error(w, "failed to get all events", http.StatusInternalServerError)
 			return
 		}
@@ -108,7 +108,7 @@ func (h *HookHandler) GetAllEvents() http.HandlerFunc {
 
 		err = json.NewEncoder(w).Encode(events)
 		if err != nil {
-			h.log.Error("Failed to encode response", "error", err)
+			h.log.ErrorContext(r.Context(), "Failed to encode response", "error", err)
 			http.Error(w, "failed to encode response", http.StatusInternalServerError)
 			return
 		}

@@ -1,6 +1,7 @@
 package infrastructure
 
 import (
+	"context"
 	"hook-flow/internal/domain"
 	"log/slog"
 	"uuid"
@@ -18,8 +19,8 @@ func NewHookRepository(log *slog.Logger) *HookRepository {
 	}
 }
 
-func (h *HookRepository) Save(event *domain.Event) (uuid.UUID, error) {
-	h.log.Info("Creating hook event")
+func (h *HookRepository) Save(ctx context.Context, event *domain.Event) (uuid.UUID, error) {
+	h.log.InfoContext(ctx, "Creating hook event")
 
 	id := uuid.NewV7()
 	h.db[id] = *event
@@ -27,20 +28,20 @@ func (h *HookRepository) Save(event *domain.Event) (uuid.UUID, error) {
 	return id, nil
 }
 
-func (h *HookRepository) Find(id uuid.UUID) (*domain.Event, error) {
-	h.log.Info("Finding hook event")
+func (h *HookRepository) Find(ctx context.Context, id uuid.UUID) (*domain.Event, error) {
+	h.log.InfoContext(ctx, "Finding hook event")
 
 	var event domain.Event
 	event, ok := h.db[id]
 	if !ok {
-		h.log.Warn("Hook event not found", "id", id)
+		h.log.WarnContext(ctx, "Hook event not found", "id", id)
 		return nil, nil
 	}
 
 	return &event, nil
 }
 
-func (h *HookRepository) FindAll() ([]*domain.Event, error) {
+func (h *HookRepository) FindAll(ctx context.Context) ([]*domain.Event, error) {
 	var events []*domain.Event
 
 	for _, event := range h.db {

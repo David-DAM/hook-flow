@@ -4,11 +4,14 @@ import (
 	"context"
 	"errors"
 	"hook-flow/internal/infrastructure"
+	"log"
 	"net/http"
 	"os"
 	"os/signal"
 	"syscall"
 	"time"
+
+	"github.com/joho/godotenv"
 )
 
 type App struct {
@@ -22,7 +25,11 @@ func Start() error {
 	ctx, stop := signal.NotifyContext(context.Background(), os.Interrupt, syscall.SIGTERM)
 	defer stop()
 
-	telemetry, err := Init(ctx, serviceName)
+	if err := godotenv.Load(); err != nil {
+		log.Fatal("Error loading .env file", "error", err)
+	}
+
+	telemetry, err := InitTelemetry(ctx, serviceName)
 	if err != nil {
 		return err
 	}
@@ -53,27 +60,27 @@ func Start() error {
 
 	go func() {
 		if err := server.ListenAndServe(); err != nil && !errors.Is(err, http.ErrServerClosed) {
-			logger.Error("Error starting server", "error", err)
+			logger.ErrorContext(ctx, "Error starting server", "error", err)
 			return
 		}
 	}()
 
 	<-ctx.Done()
-	logger.Info("shutdown signal received")
+	logger.InfoContext(ctx, "shutdown signal received")
 
 	shutdownCtx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
 
 	if err := server.Shutdown(shutdownCtx); err != nil {
-		logger.Error("server shutdown error", err)
+		logger.ErrorContext(ctx, "server shutdown error", err)
 		return err
 	}
 
 	if err := telemetry.Shutdown(ctx); err != nil {
-		logger.Error("telemetry shutdown error", err)
+		logger.ErrorContext(ctx, "telemetry shutdown error", err)
 		return err
 	}
 
-	logger.Info("app stopped cleanly")
+	logger.InfoContext(ctx, "app stopped cleanly")
 	return nil
 }
